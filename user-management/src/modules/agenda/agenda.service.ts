@@ -1,23 +1,32 @@
-// import { Injectable, OnModuleInit } from '@nestjs/common';
-// import { ConfigService } from '@nestjs/config';
-// import { Agenda } from 'agenda';
-// import { MongoBackend } from '@agendajs/mongo-backend';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Agenda } from 'agenda';
+import { MongoBackend } from '@agendajs/mongo-backend';
 
-// @Injectable()
-// export class AgendaService implements OnModuleInit {
-//     public agenda!: Agenda;
+@Injectable()
+export class AgendaService implements OnModuleInit, OnModuleDestroy {
+    private agenda!: Agenda;
 
-//     constructor(private readonly configService: ConfigService) { }
+    constructor(private readonly configService: ConfigService) { }
 
-//     async onModuleInit() {
-//         const mongoUri =
-//             this.configService.get<string>('database.mongoUri') || "";
+    async onModuleInit() {
+        const mongoUri =
+            this.configService.get<string>('database.mongoUri') || '';
 
-//         const agenda = new Agenda({
-//             backend: new MongoBackend({ address: mongoUri })
-//         });
-//         this.agenda = agenda;
+        const agenda = new Agenda({
+            backend: new MongoBackend({ address: mongoUri })
+        });
+        this.agenda = agenda;
 
-//         await this.agenda.start();
-//     }
-// }
+        // await this.agenda.start();
+        console.log('✅ Agenda initialized (API scheduler)');
+    }
+
+    getAgenda(): Agenda {
+        return this.agenda;
+    }
+
+    async onModuleDestroy() {
+        await this.agenda.stop();
+    }
+}

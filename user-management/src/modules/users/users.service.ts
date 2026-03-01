@@ -2,12 +2,17 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { User } from '../../database/schemas/user.schema';
 import { UsersRepository } from 'src/repositories/users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
-import { plainToInstance } from 'class-transformer';
-import { UserResponseDto } from './dto/user-response.dto';
+// import { plainToInstance } from 'class-transformer';
+// import { UserResponseDto } from './dto/user-response.dto';
+import { BirthdaySchedulerService } from '../birthday-worker/birthday.service';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository) { }
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly birthdayScheduler: BirthdaySchedulerService,
+  ) { }
 
   async createUser(data: CreateUserDto): Promise<User> {
     const existing = await this.usersRepository.findByEmail(data.email);
@@ -16,10 +21,14 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    return this.usersRepository.create({
+    const user = await this.usersRepository.create({
       ...data,
       birthday: new Date(data.birthday),
     });
+
+    await this.birthdayScheduler.scheduleBirthday(user);
+
+    return user;
   }
 
   async getAllUsers(query: {
@@ -74,14 +83,12 @@ export class UsersService {
     return user;
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User> {
-    // Check if user exists first
+  async updateUser(id: string, data: Partial<User>): Promise<User | null> {
     const existingUser = await this.usersRepository.findById(id);
     if (!existingUser) {
       throw new NotFoundException('User not found');
     }
 
-    // If email is being updated
     if (data.email && data.email !== existingUser.email) {
       const emailExists = await this.usersRepository.findByEmail(data.email);
 
@@ -89,14 +96,21 @@ export class UsersService {
         throw new ConflictException('Email already exists');
       }
     }
+    const updatedUser = await this.usersRepository.update(id, data);
 
-    const updated = await this.usersRepository.update(id, data);
+    const birthdayChanged = this.isBirthdayChanged(
+      existingUser.birthday,
+      data.birthday,
+    );
 
-    if (!updated) {
-      throw new NotFoundException('User not found');
+    const timezoneChanged =
+      data.timezone && data.timezone !== existingUser.timezone;
+
+    if (birthdayChanged || timezoneChanged) {
+      await this.birthdayScheduler.scheduleBirthday(updatedUser);
     }
 
-    return updated;
+    return updatedUser;
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -104,5 +118,19 @@ export class UsersService {
     if (!deleted) {
       throw new NotFoundException('User not found');
     }
+
+    await this.birthdayScheduler.cancelBirthday(id);
+  }
+
+  private isBirthdayChanged(
+    oldBirthday: Date,
+    newBirthday?: Date,
+  ): boolean {
+    if (!newBirthday) return false;
+
+    const oldDate = DateTime.fromJSDate(oldBirthday).toISODate();
+    const newDate = DateTime.fromJSDate(new Date(newBirthday)).toISODate();
+
+    return oldDate !== newDate;
   }
 }

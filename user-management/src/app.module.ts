@@ -6,6 +6,8 @@ import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import appConfig from './config/app.config';
+import { BirthdayModule } from './modules/birthday-worker/birthday.module';
+import { AgendaModule } from './modules/agenda/agenda.module';
 
 @Module({
   imports: [
@@ -14,7 +16,8 @@ import appConfig from './config/app.config';
       envFilePath: '.env',
       load: [databaseConfig, appConfig],
     }),
-    // BirthdayWorkerModule,
+    // BirthdayModule,
+    // AgendaModule,
     UsersModule,
     DatabaseModule
   ],
