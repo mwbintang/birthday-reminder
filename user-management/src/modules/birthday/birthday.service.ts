@@ -12,21 +12,22 @@ export class BirthdaySchedulerService {
         try {
             const agenda = this.agendaService.getAgenda();
 
-            const now = DateTime.now().setZone(user.timezone);
+            const nowUserTz = DateTime.now().setZone(user.timezone);
 
-            const birthdayThisYear = DateTime.fromJSDate(user.birthday)
+            const userBirthdayThisYear = DateTime.fromJSDate(user.birthday)
+                .setZone(user.timezone)
                 .set({
-                    year: now.year,
-                    hour: 9,
+                    year: nowUserTz.year,
+                    hour: 0,
                     minute: 0,
                     second: 0,
-                })
-                .setZone(user.timezone);
+                    millisecond: 0,
+                });
 
-            let scheduledDate = birthdayThisYear;
+            let userScheduledDate = userBirthdayThisYear;
 
-            if (birthdayThisYear <= now) {
-                scheduledDate = birthdayThisYear.plus({ years: 1 });
+            if (userBirthdayThisYear <= nowUserTz) {
+                userScheduledDate = userBirthdayThisYear.plus({ years: 1 });
             }
 
             // remove old job
@@ -37,13 +38,13 @@ export class BirthdaySchedulerService {
 
             // schedule new job
             await agenda.schedule(
-                scheduledDate.toJSDate(),
+                userScheduledDate.toJSDate(),
                 this.JOB_NAME,
                 { userId: user._id.toString() },
             );
 
             console.log(
-                `🎂 Birthday scheduled for ${user.name} at ${scheduledDate.toISO()}`,
+                `🎂 Birthday scheduled for ${user.name} at ${userScheduledDate.toJSDate()}`,
             );
         } catch (error) {
             console.error('Error scheduling birthday:', error);

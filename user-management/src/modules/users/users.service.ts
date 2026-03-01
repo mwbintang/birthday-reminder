@@ -4,7 +4,7 @@ import { UsersRepository } from 'src/repositories/users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 // import { plainToInstance } from 'class-transformer';
 // import { UserResponseDto } from './dto/user-response.dto';
-import { BirthdaySchedulerService } from '../birthday-worker/birthday.service';
+import { BirthdaySchedulerService } from '../birthday/birthday.service';
 import { DateTime } from 'luxon';
 
 @Injectable()
