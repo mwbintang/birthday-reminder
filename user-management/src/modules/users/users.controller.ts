@@ -13,6 +13,7 @@ import {
 import { UsersService } from './users.service';
 import { User } from '../../database/schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('v1/users')
 export class UsersController {
@@ -28,7 +29,7 @@ export class UsersController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
-    @Query('sortBy') sortBy?: string,
+    @Query('sortBy') sortBy?: keyof User,
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
   ) {
     return this.usersService.getAllUsers({
@@ -48,7 +49,7 @@ export class UsersController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() body: Partial<User>,
+    @Body() body: UpdateUserDto,
   ) {
     return this.usersService.updateUser(id, body);
   }

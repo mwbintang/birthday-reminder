@@ -18,7 +18,7 @@ export class BirthdaySchedulerService {
                 .setZone(user.timezone)
                 .set({
                     year: nowUserTz.year,
-                    hour: 0,
+                    hour: 9,
                     minute: 0,
                     second: 0,
                     millisecond: 0,

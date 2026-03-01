@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/database/schemas/user.schema';
+import { UpdateUserDto } from 'src/modules/users/dto/update-user.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -45,9 +46,12 @@ export class UsersRepository {
         return this.userModel.findOne({ email }).exec();
     }
 
-    async update(id: string, data: Partial<User>): Promise<User | null> {
+    async update(id: string, data: UpdateUserDto): Promise<User | null> {
         return this.userModel
-            .findByIdAndUpdate(id, data, { new: true })
+            .findByIdAndUpdate(id, data, {
+                new: true,
+                runValidators: true,
+            })
             .exec();
     }
 

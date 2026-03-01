@@ -1,27 +1,28 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { User } from '../../database/schemas/user.schema';
+import { User, UserDocument } from '../../database/schemas/user.schema';
 import { UsersRepository } from 'src/repositories/users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
-// import { plainToInstance } from 'class-transformer';
-// import { UserResponseDto } from './dto/user-response.dto';
 import { BirthdaySchedulerService } from '../birthday/birthday.service';
 import { DateTime } from 'luxon';
+import { UsersQuery } from './users-query.interface';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly birthdayScheduler: BirthdaySchedulerService,
-  ) { }
+  ) {}
 
   async createUser(data: CreateUserDto): Promise<User> {
-    const existing = await this.usersRepository.findByEmail(data.email);
+    const existing: User | null =
+      await this.usersRepository.findByEmail(data.email);
 
     if (existing) {
       throw new ConflictException('Email already exists');
     }
 
-    const user = await this.usersRepository.create({
+    const user: User = await this.usersRepository.create({
       ...data,
       birthday: new Date(data.birthday),
     });
@@ -31,20 +32,21 @@ export class UsersService {
     return user;
   }
 
-  async getAllUsers(query: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 10;
-    const skip = (page - 1) * limit;
+  async getAllUsers(query: UsersQuery): Promise<{
+    data: User[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const page: number = Number(query.page) || 1;
+    const limit: number = Number(query.limit) || 10;
+    const skip: number = (page - 1) * limit;
 
-    const filter: any = {};
+    const filter: Record<string, any> = {};
 
-    // 🔍 Search by name or email
     if (query.search) {
       filter.$or = [
         { name: { $regex: query.search, $options: 'i' } },
@@ -52,14 +54,16 @@ export class UsersService {
       ];
     }
 
-    const sort: any = {};
+    const sort: Record<string, 1 | -1> = {};
+
     if (query.sortBy) {
-      sort[query.sortBy] = query.sortOrder === 'desc' ? -1 : 1;
+      sort[query.sortBy as string] =
+        query.sortOrder === 'desc' ? -1 : 1;
     } else {
-      sort.createdAt = -1; // default newest first
+      sort.createdAt = -1;
     }
 
-    const [total, users] = await Promise.all([
+    const [total, users]: [number, User[]] = await Promise.all([
       this.usersRepository.count(filter),
       this.usersRepository.findAll(filter, skip, limit, sort),
     ]);
@@ -76,35 +80,50 @@ export class UsersService {
   }
 
   async getUserById(id: string): Promise<User> {
-    const user = await this.usersRepository.findById(id);
+    const user: User | null = await this.usersRepository.findById(id);
+
     if (!user) {
       throw new NotFoundException('User not found');
     }
+
     return user;
   }
 
-  async updateUser(id: string, data: Partial<User>): Promise<User | null> {
-    const existingUser = await this.usersRepository.findById(id);
+  async updateUser(
+    id: string,
+    data: UpdateUserDto,
+  ): Promise<User> {
+    const existingUser: User | null =
+      await this.usersRepository.findById(id);
+
     if (!existingUser) {
       throw new NotFoundException('User not found');
     }
 
     if (data.email && data.email !== existingUser.email) {
-      const emailExists = await this.usersRepository.findByEmail(data.email);
+      const emailExists: UserDocument | null =
+        await this.usersRepository.findByEmail(data.email);
 
       if (emailExists && emailExists._id.toString() !== id) {
         throw new ConflictException('Email already exists');
       }
     }
-    const updatedUser = await this.usersRepository.update(id, data);
+
+    const updatedUser: User | null =
+      await this.usersRepository.update(id, data);
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
 
     const birthdayChanged = this.isBirthdayChanged(
       existingUser.birthday,
-      data.birthday,
+      data.birthday ? new Date(data.birthday) : undefined,
     );
 
     const timezoneChanged =
-      data.timezone && data.timezone !== existingUser.timezone;
+      data.timezone &&
+      data.timezone !== existingUser.timezone;
 
     if (birthdayChanged || timezoneChanged) {
       await this.birthdayScheduler.scheduleBirthday(updatedUser);
@@ -113,8 +132,9 @@ export class UsersService {
     return updatedUser;
   }
 
-  async deleteUser(id: string): Promise<void> {
-    const deleted = await this.usersRepository.delete(id);
+  async deleteUser(id: string) {
+    const deleted: User | null = await this.usersRepository.delete(id);
+
     if (!deleted) {
       throw new NotFoundException('User not found');
     }
@@ -129,7 +149,7 @@ export class UsersService {
     if (!newBirthday) return false;
 
     const oldDate = DateTime.fromJSDate(oldBirthday).toISODate();
-    const newDate = DateTime.fromJSDate(new Date(newBirthday)).toISODate();
+    const newDate = DateTime.fromJSDate(newBirthday).toISODate();
 
     return oldDate !== newDate;
   }
