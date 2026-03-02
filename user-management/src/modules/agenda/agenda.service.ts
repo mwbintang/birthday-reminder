@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 export class AgendaService implements OnModuleInit, OnModuleDestroy {
   private agenda: any;
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   async onModuleInit() {
     const mongoUri =
@@ -16,7 +16,12 @@ export class AgendaService implements OnModuleInit, OnModuleDestroy {
     const { MongoBackend } = await import('@agendajs/mongo-backend');
 
     this.agenda = new Agenda({
-      backend: new MongoBackend({ address: mongoUri }),
+      backend: new MongoBackend({
+        address: mongoUri,
+        collection: 'AgendaJobs',
+        logCollection: 'AgendaLogs'
+      }),
+      logging: true
     });
 
     console.log('✅ Agenda initialized (API scheduler)');

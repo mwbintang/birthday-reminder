@@ -16,7 +16,12 @@ export class AgendaService implements OnModuleInit, OnModuleDestroy {
     const { MongoBackend } = await import('@agendajs/mongo-backend');
 
     this.agenda = new Agenda({
-      backend: new MongoBackend({ address: mongoUri }),
+      backend: new MongoBackend({ 
+        address: mongoUri,
+        collection: 'AgendaJobs',
+        logCollection: 'AgendaLogs'
+      }),
+      logging: true
     });
 
     await this.agenda.start();
