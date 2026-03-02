@@ -15,7 +15,7 @@ export class BirthdayProcessor implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    const agenda = this.agendaService.agenda;
+    const agenda = this.agendaService.getAgenda();
 
     // 1️⃣ Define job BEFORE scheduling
     agenda.define(this.JOB_NAME, async (job) => {
@@ -36,7 +36,7 @@ export class BirthdayProcessor implements OnModuleInit {
   }
 
   async scheduleUserBirthday(user: any) {
-    const agenda = this.agendaService.agenda;
+    const agenda = this.agendaService.getAgenda();
 
     const now = DateTime.now().setZone(user.timezone);
 
