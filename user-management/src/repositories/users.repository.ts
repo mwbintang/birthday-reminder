@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument } from 'src/database/schemas/user.schema';
-import { UpdateUserDto } from 'src/modules/users/dto/update-user.dto';
+import { User, UserDocument } from '../database/schemas/user.schema';
+import { UpdateUserDto } from '../modules/users/dto/update-user.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -32,10 +32,6 @@ export class UsersRepository {
             .sort(sort)
             .lean()
             .exec();
-    }
-
-    findAllWithoutPagination(): Promise<User[]> {
-        return this.userModel.find().lean().exec();
     }
 
     async findById(id: string): Promise<User | null> {

@@ -10,6 +10,6 @@ import { UsersRepository } from './users.repository';
     ]),
   ],
   providers: [UsersRepository],
-  exports: [UsersRepository], // 👈 export so other modules can use it
+  exports: [UsersRepository],
 })
 export class RepositoryModule {}

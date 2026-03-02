@@ -1,32 +1,34 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Agenda } from 'agenda';
-import { MongoBackend } from '@agendajs/mongo-backend';
 
 @Injectable()
 export class AgendaService implements OnModuleInit, OnModuleDestroy {
-    private agenda!: Agenda;
+  private agenda: any;
 
-    constructor(private readonly configService: ConfigService) { }
+  constructor(private readonly configService: ConfigService) {}
 
-    async onModuleInit() {
-        const mongoUri =
-            this.configService.get<string>('database.mongoUri') || '';
+  async onModuleInit() {
+    const mongoUri =
+      this.configService.get<string>('database.mongoUri') || '';
 
-        const agenda = new Agenda({
-            backend: new MongoBackend({ address: mongoUri })
-        });
-        this.agenda = agenda;
+    // 🔥 dynamic import fixes Jest + ESM problem
+    const { Agenda } = await import('agenda');
+    const { MongoBackend } = await import('@agendajs/mongo-backend');
 
-        // await this.agenda.start();
-        console.log('✅ Agenda initialized (API scheduler)');
+    this.agenda = new Agenda({
+      backend: new MongoBackend({ address: mongoUri }),
+    });
+
+    console.log('✅ Agenda initialized (API scheduler)');
+  }
+
+  getAgenda() {
+    return this.agenda;
+  }
+
+  async onModuleDestroy() {
+    if (this.agenda) {
+      await this.agenda.stop();
     }
-
-    getAgenda(): Agenda {
-        return this.agenda;
-    }
-
-    async onModuleDestroy() {
-        await this.agenda.stop();
-    }
+  }
 }

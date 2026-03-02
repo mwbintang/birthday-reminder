@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { DateTime } from 'luxon';
-import { UsersRepository } from 'src/repositories/users.repository';
+import { UsersRepository } from '../../repositories/users.repository';
 import { AgendaService } from '../agenda/agenda.service';
 
 @Injectable()

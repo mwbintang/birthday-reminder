@@ -18,8 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "seed": "ts-node -r tsconfig-paths/register src/database/seeders/seed.ts",
-    "worker": "ts-node -r tsconfig-paths/register src/worker.ts"
+    "seed": "ts-node -r tsconfig-paths/register src/database/seeders/seed.ts"
   },
   "dependencies": {
     "@agendajs/mongo-backend": "^4.0.0",
@@ -29,6 +28,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/mongoose": "^11.0.4",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.2.6",
     "agenda": "^6.2.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.4",
@@ -36,7 +36,8 @@
     "luxon": "^3.7.2",
     "mongoose": "^9.2.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -78,6 +79,15 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 85,
+        "statements": 85
+      }
+    }
   }
 }

@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-// import { UsersModule } from './modules/users/users.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AgendaModule } from './modules/agenda/agenda.module';
 import { BirthdayProcessor } from './modules/birthday-worker/birthday.processor';
 import { DatabaseModule } from './database/database.module';
@@ -17,7 +15,6 @@ import { RepositoryModule } from './repositories/repository.module';
             load: [databaseConfig, appConfig],
         }),
         DatabaseModule,
-        // UsersModule,
         AgendaModule,
         RepositoryModule
     ],

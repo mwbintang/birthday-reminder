@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { User, UserDocument } from '../../database/schemas/user.schema';
-import { UsersRepository } from 'src/repositories/users.repository';
+import { UsersRepository } from '../../repositories/users.repository';
 import { CreateUserDto } from './dto/create-user.dto';
 import { BirthdaySchedulerService } from '../birthday/birthday.service';
 import { DateTime } from 'luxon';

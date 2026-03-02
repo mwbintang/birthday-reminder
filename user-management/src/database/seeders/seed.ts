@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
 import { SeedModule } from './seed.module';
 
-async function bootstrap() {
+export async function bootstrap() {
   const app = await NestFactory.createApplicationContext(SeedModule);
 
   const userModel = app.get<Model<User>>(getModelToken(User.name));
@@ -37,4 +37,6 @@ async function bootstrap() {
   await app.close();
 }
 
-bootstrap();
+if (require.main === module) {
+  bootstrap();
+}
